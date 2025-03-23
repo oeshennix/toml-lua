@@ -61,12 +61,31 @@ function TOMLObject:__tostring()
     return Output;
   end;
   if(self.type==5)then
-    local time=self.value;
-    ---@cast time {["year"]:number,["month"]:number,["monthdate"]:number,["hours"]:number,["minutes"]:number,["seconds"]:number,["secfrac"]:number?,["add"]:boolean,["offsethour"]:number,["offsetminute"]:number}
-    local timestr=string.format("%04d-%02d-%02d",time.year,time.month,time.monthdate)
-    .."T"
-    ..string.format("%02d:%02d:%02d",time.hours,time.minutes,time.seconds)
-    ..((time.offsethour==0 and time.offsetminute==0) and "Z" or (string.format("%s%02d:02d",(time.add and "+" or "-"),time.offsethour,time.offsetminute)));
+    local date=self.value.Date;
+    local time=self.value.Time;
+    ---@type TOMLTimeOffset
+    local timeoffset=time and time.timeoffset;
+    local timestr
+    if(not date and time)then
+      timestr=string.format("%02d:%02d:%02d",time.hours,time.minutes,time.seconds);
+    elseif(date and not time)then
+      timestr=
+      string.format("%04d-%02d-%02d",date.year,date.month,date.monthdate)
+    elseif(date and time and not timeoffset)then
+      timestr=
+      string.format("%04d-%02d-%02d",date.year,date.month,date.monthdate)
+      .."t"
+      ..string.format("%02d:%02d:%02d",time.hours,time.minutes,time.seconds)
+    elseif(date and time and timeoffset)then
+      timestr=
+      string.format("%04d-%02d-%02d",date.year,date.month,date.monthdate)
+      .."t"
+      ..string.format("%02d:%02d:%02d",time.hours,time.minutes,time.seconds)
+      ..(
+        ((timeoffset.offsethour==0 and timeoffset.offsetminute==0) and "Z")
+        or (string.format("%s%02d:02d",(time.add and "+" or "-"),timeoffset.offsethour,timeoffset.offsetminute))
+      )
+    end
     return string.format("<TOMLObject:DateTime,%s>",timestr)
   elseif(self.type==6)then
     return string.format("<TOMLObject:float,%s>",self.value);

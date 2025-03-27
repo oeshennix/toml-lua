@@ -12,11 +12,11 @@ created by Oeshen Nix
 local TOML={};
 
 TOMLtypeEnum={"string","boolean","array","table","date-time","float","integer"}
----@class TOMLObject: {type:number, value:any }
 ---@class TOMLDate: {year:number, month:number, monthdate:number}
 ---@class TOMLTimeOffset: {add:boolean,offsethour:number, offsetminute:number}
 ---@class TOMLTime: {hours:number, minutes:number, seconds:number, secfrac:number?, timeoffset:TOMLTimeOffset?}
 ---@class TOMLDateTime: {Date:TOMLDate?,Time:TOMLTime?}
+---@class TOMLObject: {type:number, value:any }
 TOMLObject={}
 TOMLObject.__index=TOMLObject;
 function TOMLObject:Lua()
@@ -28,8 +28,8 @@ function TOMLObject:Lua()
     end;
     return array;
   elseif(self.type==4)then
-  local tab={};
-    for key,object in ipairs(self.value)do
+    local tab={};
+    for key,object in pairs(self.value)do
       tab[key]=object:Lua();
     end;
     return tab;
@@ -950,7 +950,7 @@ function GetPartialTime(parseObject);
     ContinueUTF8(parseObject);
   end
   ---@type TOMLTime
-  return {hours=tonumber(hourstr),minutes=tonumber(minutestr),seconds=tonumber(secondstr),secfrac=tonumber(secfracstr)}
+  return {hours=tonumber(hourstr),minutes=tonumber(minutestr),seconds=tonumber(secondstr),secfrac=(tonumber(secfracstr)/10^#secfracstr)}
 end
 
 ---@param parseObject TOMLParseObject 
@@ -1091,9 +1091,9 @@ function GetLocalTime(parseObject);
 end
 
 ---@param parseObject TOMLParseObject 
----@return {}?
+---@return TOMLDateTime?
 ---@nodiscard
-function GetDateTime(parseObject);
+function GetDateTime2(parseObject);
   local start,startchar=parseObject.index,parseObject.char;
   local datetime=GetOffsetDateTime(parseObject);
   if(datetime)then
@@ -1118,6 +1118,45 @@ function GetDateTime(parseObject);
     return datetime;
   end
 end
+
+function IsLeapYear(year)
+  return (year % 4 == 0) and ((year % 100 ~= 0) or (year % 400 ==0));
+end;
+local MaximumValueOfMDay={
+  31,--January
+  28,--February
+  31,--March
+  30,--April
+  31,--May
+  30,--June
+  31,--July
+  31,--August
+  30,--September
+  31,--October
+  30,--November
+  31 --December
+}
+
+---@param parseObject TOMLParseObject 
+---@return TOMLDateTime?
+---@nodiscard
+function GetDateTime(parseObject);
+  local datetime=GetDateTime2(parseObject);
+  if(not datetime)then
+    return nil;
+  end
+  local date=datetime.Date;
+  if(not date)then
+    return datetime;
+  end
+  local MaxDays=MaximumValueOfMDay[date.month];
+  if(date.month==02 and IsLeapYear(date.year))then
+    MaxDays=29;
+  end;
+  assert(date.monthdate<=29,"Month Date Cannot Exceed Days of Month");
+  --legit could not find table of leap seconds.
+  return datetime;
+end;
 
 ---@param parseObject TOMLParseObject 
 ---@return string?
@@ -1637,7 +1676,7 @@ function TOML.parse(TOMLString)
           ftable.value[v]=setmetatable({["type"]=4,["value"]={}},TOMLObject);
         end
         ftable=ftable.value[v];
-      end;
+      end
       ftable.value[final]=keyval.value;
       SkipWhiteSpaces(parseObject);
       TryComment(parseObject);
@@ -1696,7 +1735,7 @@ function TOML.parse(TOMLString)
       SkipWhiteSpaces(parseObject);
       TryComment(parseObject);
       return true;
-    end
+    end;
     parseObject.index=start;
     parseObject.char=startchar;
     return true;

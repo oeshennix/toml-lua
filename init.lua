@@ -1149,6 +1149,7 @@ function GetDateTime(parseObject);
   if(not date)then
     return datetime;
   end
+  assert(date.month<=12,"Month Date Cannot Exceed Days of Month");
   local MaxDays=MaximumValueOfMDay[date.month];
   if(date.month==02 and IsLeapYear(date.year))then
     MaxDays=29;

@@ -152,7 +152,7 @@ function IsNewLine(parseObject)
     return true
   elseif(parseObject.char=="\x0D")then
     ContinueUTF8(parseObject);
-    assert(char =="\x0A","CR must be followed by LF");
+    assert(parseObject.char =="\x0A","CR must be followed by LF");
     return true
   end;
   return false;
@@ -1149,16 +1149,23 @@ function GetDateTime(parseObject);
     return nil;
   end
   local date=datetime.Date;
-  if(not date)then
-    return datetime;
+  if(date)then
+    assert(date.month>=1,"Cannot be less than 1 months");
+    assert(date.month<=12,"Cannot be more than 12 months");
+    local MaxDays=MaximumValueOfMDay[date.month];
+    if(date.month==02 and IsLeapYear(date.year))then
+      MaxDays=29;
+    end;
+    assert(date.monthdate>=0,"Month Date Cannot be less than 1");
+    assert(date.monthdate<=MaxDays,"Month Date Cannot Exceed Days of Month");
+    --legit could not find table of leap seconds.
   end
-  assert(date.month<=12,"Month Date Cannot Exceed Days of Month");
-  local MaxDays=MaximumValueOfMDay[date.month];
-  if(date.month==02 and IsLeapYear(date.year))then
-    MaxDays=29;
+  local time=datetime.Time;
+  if(time)then
+    assert(time.hours<=23,"Hours are between 0-23");
+    assert(time.minutes<=59,"Minutes are bettwen 0-59");
+    assert(time.seconds<=60,"Minutes are bettwen 0-60");
   end;
-  assert(date.monthdate<=MaxDays,"Month Date Cannot Exceed Days of Month");
-  --legit could not find table of leap seconds.
   return datetime;
 end;
 

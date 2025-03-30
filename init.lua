@@ -7,6 +7,7 @@ have not tested lower versions
 created by Oeshen Nix
 --]=]
 
+table.unpack = table.unpack or unpack;
 ---@class TOMLParseObject: {index:number,char:string,pos:number,line:number,lines:string[],file:string}}
 
 local TOML={};
@@ -159,7 +160,7 @@ function IsNewLine(parseObject)
 end
 ---@param parseObject TOMLParseObject 
 ---@return boolean
-function TryComment(parseObject);
+function TryComment(parseObject)
   if(parseObject.char=="#")then
     ContinueUTF8(parseObject);
     local byte=string.byte(parseObject.char,1);
@@ -199,7 +200,7 @@ local EscapedCharacters={
 ---@return string?
 ---@nodiscard
 function GetEscaped(parseObject)
-  if(parseObject.char=="\x5C")then;--\
+  if(parseObject.char=="\x5C")then--\
     ContinueUTF8(parseObject);
     if(parseObject.char=="u" or parseObject.char=="U")then
       local str="";
@@ -566,7 +567,7 @@ end;
 ---@param parseObject TOMLParseObject 
 ---@return string?
 ---@nodiscard
-function GetLiteralChar(parseObject);
+function GetLiteralChar(parseObject)
   local char=parseObject.char;
   local byte=string.byte(char,1,1);
   if ((byte>=20 and char~="'") or char=="\x09")then
@@ -806,7 +807,7 @@ end;
 ---@param parseObject TOMLParseObject 
 ---@return {number:any}?
 ---@nodiscard
-function GetInlineTableKeyVals(parseObject);
+function GetInlineTableKeyVals(parseObject)
   local keyval;
   keyval=GetKeyVal(parseObject);
   if(not keyval)then
@@ -832,7 +833,7 @@ end;
 ---@param parseObject TOMLParseObject 
 ---@return {string:any}?
 ---@nodiscard
-function GetInlineTable(parseObject);
+function GetInlineTable(parseObject)
   if(parseObject.char~="{")then
     return nil
   end
@@ -910,7 +911,7 @@ end
 ---@param parseObject TOMLParseObject 
 ---@return TOMLTime?
 ---@nodiscard
-function GetPartialTime(parseObject);
+function GetPartialTime(parseObject)
   local hourstr="";
   for _=1,2 do
     if(not string.match(parseObject.char,"[0-9]"))then
@@ -959,7 +960,7 @@ end
 ---@param parseObject TOMLParseObject 
 ---@return TOMLTimeOffset?
 ---@nodiscard
-function GetTimeOffset(parseObject);
+function GetTimeOffset(parseObject)
   if(parseObject.char=="Z" or parseObject.char=="z")then
     ContinueUTF8(parseObject);
     return {add=true,offsethour=0,offsetminute=0};
@@ -998,7 +999,7 @@ end
 ---@param parseObject TOMLParseObject 
 ---@return TOMLTime?
 ---@nodiscard
-function GetFullTime(parseObject);
+function GetFullTime(parseObject)
   local partialtime;
   partialtime = GetPartialTime(parseObject);
   if(not partialtime)then
@@ -1016,7 +1017,7 @@ end
 ---@param parseObject TOMLParseObject 
 ---@return TOMLDateTime?
 ---@nodiscard
-function GetOffsetDateTime(parseObject);
+function GetOffsetDateTime(parseObject)
   local fulldate
   fulldate=GetFullDate(parseObject);
   if(not fulldate)then
@@ -1041,7 +1042,7 @@ end
 ---@param parseObject TOMLParseObject 
 ---@return TOMLDateTime?
 ---@nodiscard
-function GetLocalDateTime(parseObject);
+function GetLocalDateTime(parseObject)
   local fulldate
   fulldate=GetFullDate(parseObject);
   if(not fulldate)then
@@ -1066,7 +1067,7 @@ end
 ---@param parseObject TOMLParseObject 
 ---@return TOMLDateTime?
 ---@nodiscard
-function GetLocalDate(parseObject);
+function GetLocalDate(parseObject)
   local fulldate
   fulldate=GetFullDate(parseObject);
   if(not fulldate)then
@@ -1081,7 +1082,7 @@ end
 ---@param parseObject TOMLParseObject 
 ---@return TOMLDateTime?
 ---@nodiscard
-function GetLocalTime(parseObject);
+function GetLocalTime(parseObject)
   local fulltime
   fulltime=GetPartialTime(parseObject);
   if(not fulltime)then
@@ -1096,7 +1097,7 @@ end
 ---@param parseObject TOMLParseObject 
 ---@return TOMLDateTime?
 ---@nodiscard
-function GetDateTime2(parseObject);
+function GetDateTime2(parseObject)
   local start,startchar=parseObject.index,parseObject.char;
   local datetime=GetOffsetDateTime(parseObject);
   if(datetime)then
@@ -1143,7 +1144,7 @@ local MaximumValueOfMDay={
 ---@param parseObject TOMLParseObject 
 ---@return TOMLDateTime?
 ---@nodiscard
-function GetDateTime(parseObject);
+function GetDateTime(parseObject)
   local datetime=GetDateTime2(parseObject);
   if(not datetime)then
     return nil;
@@ -1172,7 +1173,7 @@ end;
 ---@param parseObject TOMLParseObject 
 ---@return string?
 ---@nodiscard
-function GetUnsignedDecInt(parseObject);
+function GetUnsignedDecInt(parseObject)
   if(not string.match(parseObject.char,"[0-9]"))then
     return  nil
   end;
@@ -1222,7 +1223,7 @@ end
 ---@param parseObject TOMLParseObject 
 ---@return string?
 ---@nodiscard
-function GetZeroPrefixableInt(parseObject);
+function GetZeroPrefixableInt(parseObject)
   if(not string.match(parseObject.char,"[0-9]"))then
     return  nil
   end;
@@ -1364,7 +1365,7 @@ end
 ---@param parseObject TOMLParseObject 
 ---@return string?
 ---@nodiscard
-function GetHexInt(parseObject);
+function GetHexInt(parseObject)
   --prefix
   if(parseObject.char~="0")then
     return nil
@@ -1400,7 +1401,7 @@ end
 ---@param parseObject TOMLParseObject 
 ---@return string?
 ---@nodiscard
-function GetOctInt(parseObject);
+function GetOctInt(parseObject)
   --prefix
   if(parseObject.char~="0")then
     return nil
@@ -1436,7 +1437,7 @@ end
 ---@param parseObject TOMLParseObject 
 ---@return string?
 ---@nodiscard
-function GetBinInt(parseObject);
+function GetBinInt(parseObject)
   --prefix
   if(parseObject.char~="0")then
     return nil
@@ -1472,7 +1473,7 @@ end
 ---@param parseObject TOMLParseObject 
 ---@return number?
 ---@nodiscard
-function GetInteger(parseObject);
+function GetInteger(parseObject)
   local start,startchar=parseObject.index,parseObject.char;
   local int;
   int=GetDecInt(parseObject);
@@ -1505,7 +1506,7 @@ end
 ---@param parseObject TOMLParseObject 
 ---@return TOMLObject?
 ---@nodiscard
-function GetVal(parseObject);
+function GetVal(parseObject)
   --return value as a type
   --getstring first
   local start=parseObject.index;
@@ -1625,7 +1626,7 @@ end;
 
 ---@param parseObject TOMLParseObject 
 ---@return {type:number, key:string[]}?;
-function GetTable(parseObject);
+function GetTable(parseObject)
   local start,startchar=parseObject.index,parseObject.char
   local tab;
   tab=GetStdTable(parseObject);

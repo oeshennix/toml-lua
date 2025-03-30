@@ -1,6 +1,6 @@
 # toml-lua
 
-a TOML parser written in lua 
+a TOML 1.0.0 parser written in lua 
 
 ---
 ## How to use
@@ -50,3 +50,7 @@ local data=TOMLData:Lua()
 print(data.servers.alpha.ip);
 ```
 
+# Bugs
+
+allows redefinition of tables.
+stops and return at invalid TOML

@@ -1234,9 +1234,7 @@ function GetZeroPrefixableInt(parseObject);
       ContinueUTF8(parseObject);
     elseif(parseObject.char=="_")then
       ContinueUTF8(parseObject);
-      if(not string.match(parseObject.char,"[0-9]"))then
-        return nil
-      end
+      assert(string.match(parseObject.char,"[0-9]"),"cannot end float with _");
       strint=strint..parseObject.char;
       ContinueUTF8(parseObject);
     else
@@ -1273,6 +1271,7 @@ function GetExp(parseObject)
   ContinueUTF8(parseObject);
   local floatexp;
   floatexp=GetFloatExpPart(parseObject);
+  assert(floatexp,"floatExp must immediately follow E");
   return "e"..floatexp;
 end;
 
@@ -1286,6 +1285,7 @@ function GetFrac(parseObject)
   ContinueUTF8(parseObject);
   local zeroprefixableint
   zeroprefixableint=GetZeroPrefixableInt(parseObject);
+  assert(zeroprefixableint,"must be numbers after .");
   return zeroprefixableint
 end;
 

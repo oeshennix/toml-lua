@@ -1156,7 +1156,7 @@ function GetDateTime(parseObject);
     if(date.month==02 and IsLeapYear(date.year))then
       MaxDays=29;
     end;
-    assert(date.monthdate>=0,"Month Date Cannot be less than 1");
+    assert(date.monthdate>=1,"Month Date Cannot be less than 1");
     assert(date.monthdate<=MaxDays,"Month Date Cannot Exceed Days of Month");
     --legit could not find table of leap seconds.
   end

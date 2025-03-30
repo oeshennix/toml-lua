@@ -128,6 +128,10 @@ function ContinueUTF8(parseobject)
   error("UTF8 error: how did this happen???");
 end;
 
+---@param char string
+function UTF8CharByte(char)
+end;
+
 ---@param parseObject TOMLParseObject 
 function SkipWhiteSpaces(parseObject)--char is passed since I dont want a function like IsUTF8At since it does not continue the file;
   local char=parseObject.char;
@@ -148,9 +152,8 @@ function IsNewLine(parseObject)
     return true
   elseif(parseObject.char=="\x0D")then
     ContinueUTF8(parseObject);
-  if(parseObject.char=="\x0A")then
+    assert(char =="\x0A","CR must be followed by LF");
     return true
-    end;
   end;
   return false;
 end
